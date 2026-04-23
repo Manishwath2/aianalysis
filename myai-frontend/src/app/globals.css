@@ -1,0 +1,270 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), sans-serif;
+  overflow: hidden;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+/* Utility used by the UI mockup */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+@keyframes singulyn-dot {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+
+  40% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes singulyn-scan {
+  0% {
+    transform: translateX(-55%);
+    opacity: 0;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(55%);
+    opacity: 0;
+  }
+}
+
+.singulyn-flow-frame {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.singulyn-flow-frame::before {
+  content: "";
+  display: none;
+  position: absolute;
+  inset: -2px;
+  z-index: 0;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    rgba(34, 211, 238, 0.85),
+    rgba(168, 85, 247, 0.85),
+    rgba(232, 121, 249, 0.85),
+    rgba(34, 211, 238, 0.85)
+  );
+  filter: blur(0.8px);
+  opacity: 0.18;
+}
+
+.singulyn-flow-frame--active::before {
+  display: block;
+  animation: singulyn-rotate 6s linear infinite;
+  opacity: 0.55;
+}
+
+.singulyn-answer-frame {
+  background:
+    linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(244, 114, 182, 0.12)),
+    rgba(255, 255, 255, 0.04);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+@keyframes singulyn-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes singulyn-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes singulyn-core-pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes singulyn-bar-wave {
+  0%,
+  100% {
+    transform: scaleY(0.42);
+    opacity: 0.35;
+  }
+
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.singulyn-activity {
+  --activity-color: rgba(34, 211, 238, 0.95);
+  --activity-shadow: rgba(34, 211, 238, 0.35);
+  position: relative;
+  width: 92px;
+  height: 38px;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), transparent 62%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.06));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.28);
+  isolation: isolate;
+}
+
+.singulyn-activity::before {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  background: conic-gradient(
+    from 180deg,
+    transparent 0deg,
+    transparent 110deg,
+    var(--activity-color) 180deg,
+    transparent 260deg,
+    transparent 360deg
+  );
+  opacity: 0.7;
+  filter: blur(1px);
+  animation: singulyn-orbit 2.4s linear infinite;
+}
+
+.singulyn-activity__bar {
+  position: absolute;
+  bottom: 8px;
+  z-index: 1;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), var(--activity-color));
+  box-shadow: 0 0 12px var(--activity-shadow);
+  transform-origin: center bottom;
+  animation: singulyn-bar-wave 1.25s ease-in-out infinite;
+}
+
+.singulyn-activity__bar:nth-child(1) {
+  left: 24px;
+  height: 11px;
+  animation-delay: 0s;
+}
+
+.singulyn-activity__bar:nth-child(2) {
+  left: 34px;
+  height: 17px;
+  animation-delay: 0.16s;
+}
+
+.singulyn-activity__bar:nth-child(3) {
+  left: 44px;
+  height: 14px;
+  animation-delay: 0.32s;
+}
+
+.singulyn-activity__bar:nth-child(4) {
+  left: 54px;
+  height: 9px;
+  animation-delay: 0.48s;
+}
+
+.singulyn-activity__core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, var(--activity-color) 72%);
+  box-shadow:
+    0 0 18px var(--activity-shadow),
+    0 0 32px var(--activity-shadow);
+  animation: singulyn-core-pulse 1.8s ease-in-out infinite;
+}
+
+.singulyn-activity--thinking {
+  --activity-color: rgba(34, 211, 238, 0.95);
+  --activity-shadow: rgba(34, 211, 238, 0.35);
+}
+
+.singulyn-activity--processing {
+  --activity-color: rgba(96, 165, 250, 0.95);
+  --activity-shadow: rgba(96, 165, 250, 0.35);
+}
+
+.singulyn-activity--processing::before {
+  animation-duration: 1.8s;
+}
+
+.singulyn-activity--processing .singulyn-activity__bar {
+  animation-duration: 0.95s;
+}
+
+.singulyn-activity--generating {
+  --activity-color: rgba(244, 114, 182, 0.95);
+  --activity-shadow: rgba(244, 114, 182, 0.35);
+}
+
+.singulyn-activity--generating::before {
+  animation-duration: 3s;
+}
+
+.singulyn-activity--generating .singulyn-activity__bar {
+  animation-duration: 1.45s;
+}
