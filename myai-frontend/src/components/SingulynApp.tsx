@@ -128,6 +128,28 @@ const emptyJobDraft: JobDraft = {
   seniority: "mid",
 };
 
+const INITIAL_TIMESTAMP = 0;
+
+const initialNotifications: NotificationItem[] = [
+  {
+    id: "notification-initial",
+    title: "Backend Ready",
+    body: "Connect candidates, jobs, ranking, and chat from one mobile workspace.",
+    timestamp: INITIAL_TIMESTAMP,
+    unread: true,
+  },
+];
+
+const initialMessages: ChatMessage[] = [
+  {
+    id: "msg-initial",
+    role: "assistant",
+    text:
+      "Chat is ready. Select a candidate and job, then use the tool menu for summaries, ranking, recruiter notes, or template JSON.",
+    timestamp: INITIAL_TIMESTAMP,
+  },
+];
+
 function createId(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return `${prefix}-${crypto.randomUUID()}`;
@@ -334,6 +356,7 @@ function formatTemplateMessage(preview: ResumeTemplateDataResponse) {
 }
 
 export default function SingulynApp() {
+  const [isHydrated, setIsHydrated] = useState(false);
   const [screen, setScreen] = useState<Screen>("chat");
   const [activeTool, setActiveTool] = useState<Tool>("Recruitment Assistant");
   const [drawerView, setDrawerView] = useState<DrawerView>("menu");
@@ -352,24 +375,8 @@ export default function SingulynApp() {
   const [selectedJobId, setSelectedJobId] = useState<string>("");
   const [busyNote, setBusyNote] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: createId("notification"),
-      title: "Backend Ready",
-      body: "Connect candidates, jobs, ranking, and chat from one mobile workspace.",
-      timestamp: Date.now(),
-      unread: true,
-    },
-  ]);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: createId("msg"),
-      role: "assistant",
-      text:
-        "Chat is ready. Select a candidate and job, then use the tool menu for summaries, ranking, recruiter notes, or template JSON.",
-      timestamp: Date.now(),
-    },
-  ]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -392,6 +399,10 @@ export default function SingulynApp() {
       : toolRequirementNote === null && (hasDraftInput || canRunActiveToolWithoutInput);
   const toolExecutionHint =
     !hasDraftInput && toolRequirementNote === null ? getToolExecutionHint(activeTool) : null;
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
     void refreshData();
@@ -1281,10 +1292,12 @@ export default function SingulynApp() {
                             message.role === "user" ? "text-right" : "text-left"
                           }`}
                         >
-                          {new Date(message.timestamp).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {isHydrated && message.timestamp
+                            ? new Date(message.timestamp).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : null}
                         </div>
                       </div>
                     </div>
@@ -1668,10 +1681,12 @@ export default function SingulynApp() {
                           ) : null}
                         </div>
                         <span className="text-[10px] text-gray-500">
-                          {new Date(item.timestamp).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {isHydrated && item.timestamp
+                            ? new Date(item.timestamp).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : null}
                         </span>
                       </div>
                       <p className="mt-2 text-[11px] leading-relaxed text-gray-400">{item.body}</p>

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 
 function getBackendBaseUrl() {
-  const baseUrl = process.env.BACKEND_BASE_URL ?? "http://127.0.0.1:8000";
+  const fallbackBaseUrl =
+    process.env.NODE_ENV === "production" ? "http://backend:8000" : "http://127.0.0.1:8000";
+  const baseUrl = process.env.BACKEND_BASE_URL ?? fallbackBaseUrl;
   return {
     ok: true as const,
     baseUrl: baseUrl.replace(/\/+$/, ""),
@@ -29,7 +31,18 @@ async function proxyRequest(request: Request, path: string[]) {
     init.body = await request.text();
   }
 
-  const upstream = await fetch(targetUrl, init);
+  let upstream: Response;
+  try {
+    upstream = await fetch(targetUrl, init);
+  } catch {
+    return NextResponse.json(
+      {
+        error: "backend_unavailable",
+        detail: "Backend service is unavailable",
+      },
+      { status: 503 },
+    );
+  }
   const responseHeaders = new Headers(upstream.headers);
   responseHeaders.set("cache-control", "no-store");
   responseHeaders.delete("content-length");
