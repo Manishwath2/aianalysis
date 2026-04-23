@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
 
+const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
+
 function getBackendBaseUrl() {
   const fallbackBaseUrl =
     process.env.NODE_ENV === "production" ? "http://backend:8000" : "http://127.0.0.1:8000";
-  const baseUrl = process.env.BACKEND_BASE_URL ?? fallbackBaseUrl;
+  const rawBaseUrl = process.env.BACKEND_BASE_URL?.trim() || fallbackBaseUrl;
+
+  let parsedBaseUrl: URL;
+  try {
+    parsedBaseUrl = new URL(rawBaseUrl);
+  } catch {
+    parsedBaseUrl = new URL(fallbackBaseUrl);
+  }
+
+  const baseUrl =
+    process.env.NODE_ENV === "production" && LOOPBACK_HOSTNAMES.has(parsedBaseUrl.hostname)
+      ? fallbackBaseUrl
+      : parsedBaseUrl.toString();
+
   return {
     ok: true as const,
     baseUrl: baseUrl.replace(/\/+$/, ""),
@@ -34,7 +49,12 @@ async function proxyRequest(request: Request, path: string[]) {
   let upstream: Response;
   try {
     upstream = await fetch(targetUrl, init);
-  } catch {
+  } catch (error) {
+    console.error("Backend proxy request failed", {
+      targetUrl: targetUrl.toString(),
+      error,
+    });
+
     return NextResponse.json(
       {
         error: "backend_unavailable",

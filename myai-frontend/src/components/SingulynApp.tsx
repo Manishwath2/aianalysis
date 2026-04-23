@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ChangeEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import {
   Bell,
   Bookmark,
@@ -149,6 +157,30 @@ const initialMessages: ChatMessage[] = [
     timestamp: INITIAL_TIMESTAMP,
   },
 ];
+
+function subscribeToHydrationStore() {
+  return () => {};
+}
+
+function getHydratedSnapshot() {
+  return true;
+}
+
+function getServerHydratedSnapshot() {
+  return false;
+}
+
+function formatClientTime(timestamp: number, isHydrated: boolean) {
+  if (!isHydrated || !timestamp) {
+    return null;
+  }
+
+  return new Date(timestamp).toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
 
 function createId(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -356,7 +388,11 @@ function formatTemplateMessage(preview: ResumeTemplateDataResponse) {
 }
 
 export default function SingulynApp() {
-  const [isHydrated, setIsHydrated] = useState(false);
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydrationStore,
+    getHydratedSnapshot,
+    getServerHydratedSnapshot,
+  );
   const [screen, setScreen] = useState<Screen>("chat");
   const [activeTool, setActiveTool] = useState<Tool>("Recruitment Assistant");
   const [drawerView, setDrawerView] = useState<DrawerView>("menu");
@@ -399,10 +435,6 @@ export default function SingulynApp() {
       : toolRequirementNote === null && (hasDraftInput || canRunActiveToolWithoutInput);
   const toolExecutionHint =
     !hasDraftInput && toolRequirementNote === null ? getToolExecutionHint(activeTool) : null;
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
 
   useEffect(() => {
     void refreshData();
@@ -1292,12 +1324,7 @@ export default function SingulynApp() {
                             message.role === "user" ? "text-right" : "text-left"
                           }`}
                         >
-                          {isHydrated && message.timestamp
-                            ? new Date(message.timestamp).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : null}
+                          {formatClientTime(message.timestamp, isHydrated)}
                         </div>
                       </div>
                     </div>
@@ -1681,12 +1708,7 @@ export default function SingulynApp() {
                           ) : null}
                         </div>
                         <span className="text-[10px] text-gray-500">
-                          {isHydrated && item.timestamp
-                            ? new Date(item.timestamp).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : null}
+                          {formatClientTime(item.timestamp, isHydrated)}
                         </span>
                       </div>
                       <p className="mt-2 text-[11px] leading-relaxed text-gray-400">{item.body}</p>
