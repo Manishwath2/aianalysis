@@ -1,7 +1,7 @@
 """create candidate, job, and resume document tables
 
-Revision ID: 0003_create_candidate_job_resume_tables
-Revises: 0002_create_resume_templates
+Revision ID: 0003
+Revises: 0002
 Create Date: 2026-04-23
 """
 
@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision = "0003_create_candidate_job_resume_tables"
-down_revision = "0002_create_resume_templates"
+revision = "0003"
+down_revision = "0002"
 branch_labels = None
 depends_on = None
 

@@ -29,13 +29,13 @@ def get_url() -> str:
 target_metadata = Base.metadata
 
 
-def widen_alembic_version_column(connection: Connection) -> None:
-    """Allow descriptive Alembic revision ids on existing Postgres databases.
+def repair_alembic_version_table(connection: Connection) -> None:
+    """Normalize legacy Alembic metadata before resolving the revision graph.
 
-    Some managed/deployed databases may have an alembic_version.version_num
-    column created as VARCHAR(32). Our descriptive revision ids are longer than
-    that, so the version update can fail after a migration succeeds. Widen this
-    metadata column before Alembic writes the next revision.
+    Earlier builds used descriptive revision ids. Existing databases may already
+    be stamped with one of those values. The active revision graph now uses
+    short ids, so trim legacy values to their numeric prefix before Alembic
+    loads the migration graph.
     """
     if connection.dialect.name != "postgresql":
         return
@@ -48,6 +48,16 @@ def widen_alembic_version_column(connection: Connection) -> None:
 
     connection.execute(
         sa.text("ALTER TABLE alembic_version ALTER COLUMN version_num TYPE VARCHAR(128)")
+    )
+    connection.execute(
+        sa.text(
+            """
+            UPDATE alembic_version
+            SET version_num = LEFT(version_num, 4)
+            WHERE version_num LIKE '000_\\_%' ESCAPE '\\'
+              AND LEFT(version_num, 4) IN ('0001', '0002', '0003')
+            """
+        )
     )
 
 
@@ -65,7 +75,7 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    widen_alembic_version_column(connection)
+    repair_alembic_version_table(connection)
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():

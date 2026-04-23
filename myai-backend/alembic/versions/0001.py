@@ -1,6 +1,6 @@
 """create users table
 
-Revision ID: 0001_create_users
+Revision ID: 0001
 Revises: 
 Create Date: 2026-04-22
 """
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 
-revision = "0001_create_users"
+revision = "0001"
 down_revision = None
 branch_labels = None
 depends_on = None

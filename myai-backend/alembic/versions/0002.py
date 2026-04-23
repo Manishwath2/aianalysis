@@ -1,7 +1,7 @@
 """create resume templates
 
-Revision ID: 0002_create_resume_templates
-Revises: 0001_create_users
+Revision ID: 0002
+Revises: 0001
 Create Date: 2026-04-22
 """
 
@@ -15,8 +15,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 
-revision = "0002_create_resume_templates"
-down_revision = "0001_create_users"
+revision = "0002"
+down_revision = "0001"
 branch_labels = None
 depends_on = None
 
