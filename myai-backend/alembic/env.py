@@ -4,6 +4,7 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
+import sqlalchemy as sa
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -28,6 +29,28 @@ def get_url() -> str:
 target_metadata = Base.metadata
 
 
+def widen_alembic_version_column(connection: Connection) -> None:
+    """Allow descriptive Alembic revision ids on existing Postgres databases.
+
+    Some managed/deployed databases may have an alembic_version.version_num
+    column created as VARCHAR(32). Our descriptive revision ids are longer than
+    that, so the version update can fail after a migration succeeds. Widen this
+    metadata column before Alembic writes the next revision.
+    """
+    if connection.dialect.name != "postgresql":
+        return
+
+    exists = connection.execute(
+        sa.text("SELECT to_regclass('public.alembic_version') IS NOT NULL")
+    ).scalar()
+    if not exists:
+        return
+
+    connection.execute(
+        sa.text("ALTER TABLE alembic_version ALTER COLUMN version_num TYPE VARCHAR(128)")
+    )
+
+
 def run_migrations_offline() -> None:
     url = get_url()
     context.configure(
@@ -42,6 +65,7 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
+    widen_alembic_version_column(connection)
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():
